@@ -195,7 +195,12 @@ See [prisma/schema.prisma](prisma/schema.prisma).
   `beforePhotoUrl?`, `afterPhotoUrl?`, `createdAt`
 - **PushSubscription** — `id`, `userId`, `endpoint` (unique), `p256dh`, `auth`, `createdAt`
 
-Deleting a user or mission cascades to memberships, activities, and subscriptions.
+Deleting a user or mission cascades to memberships, activities, and push subscriptions.
+
+One deliberate exception: `Mission.createdById` does **not** cascade. Deleting a user who
+started a mission is blocked by the database rather than silently destroying a mission
+everyone else is still logging to. Delete or reassign the mission first. Nothing in the UI
+deletes accounts, so this only comes up in manual database work.
 
 ---
 
