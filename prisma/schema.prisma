@@ -7,7 +7,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Pooled (pgbouncer) connection for normal queries — safe for many concurrent
+  // serverless invocations.
+  url       = env("DATABASE_URL")
+  // Migrations take advisory locks and run DDL, neither of which survives a
+  // transaction-mode pooler, so they need a direct connection.
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 enum ActivityKind {
