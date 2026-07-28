@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/session";
 
 import { JoinMissionForm } from "./join-mission-form";
 
-export const metadata = { title: "Join a mission · September Mission" };
+export const metadata = { title: "Join a mission · Mission 32" };
 
 export default async function JoinMissionPage() {
   await requireUser();

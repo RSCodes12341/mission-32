@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/session";
 
 import { NewMissionForm } from "./new-mission-form";
 
-export const metadata = { title: "New mission · September Mission" };
+export const metadata = { title: "New mission · Mission 32" };
 
 export default async function NewMissionPage() {
   await requireUser();

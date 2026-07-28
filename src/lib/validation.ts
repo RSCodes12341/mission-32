@@ -30,7 +30,7 @@ export const joinSchema = z.object({
 });
 
 export const createMissionSchema = z.object({
-  name: z.string().trim().min(1, "Give the mission a name").max(80).default("The September mission"),
+  name: z.string().trim().min(1, "Give the mission a name").max(80).default("Mission 32"),
   rideTarget: z.coerce.number().int().min(1).max(999).default(15),
   pitTarget: z.coerce.number().int().min(0).max(999).default(7),
   sportTarget: z.coerce.number().int().min(0).max(999).default(10),

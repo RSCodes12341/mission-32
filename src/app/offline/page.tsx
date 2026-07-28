@@ -1,6 +1,6 @@
 import { EmptyState } from "@/components/ui";
 
-export const metadata = { title: "Offline · September Mission" };
+export const metadata = { title: "Offline · Mission 32" };
 
 export default function OfflinePage() {
   return (

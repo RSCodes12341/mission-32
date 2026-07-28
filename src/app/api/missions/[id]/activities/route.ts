@@ -108,7 +108,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   await sendPushToUsers(
     others.map((m) => m.userId),
     {
-      title: "September Mission",
+      title: "Mission 32",
       body: `${user.name} logged a ${KIND_LABEL[kind.data]}`,
       url: `/mission/${missionId}`,
       tag: `mission-${missionId}`,

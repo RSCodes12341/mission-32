@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const mission = await getMissionDetail(id);
-  return { title: mission ? `${mission.name} · September Mission` : "September Mission" };
+  return { title: mission ? `${mission.name} · Mission 32` : "Mission 32" };
 }
 
 export default async function MissionPage({ params }: { params: Promise<{ id: string }> }) {

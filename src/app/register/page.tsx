@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { RegisterForm } from "./register-form";
 
-export const metadata = { title: "Create account · September Mission" };
+export const metadata = { title: "Create account · Mission 32" };
 
 export default function RegisterPage() {
   return (

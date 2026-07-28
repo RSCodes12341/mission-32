@@ -1,4 +1,4 @@
-/* September Mission service worker.
+/* Mission 32 service worker.
  * Bump VERSION to force every client to drop its old caches on next load. */
 const VERSION = "v1";
 const PAGE_CACHE = `pages-${VERSION}`;
@@ -87,13 +87,13 @@ self.addEventListener("push", (event) => {
     data = { body: event.data ? event.data.text() : "" };
   }
 
-  const title = data.title || "September Mission";
+  const title = data.title || "Mission 32";
   event.waitUntil(
     self.registration.showNotification(title, {
       body: data.body || "Someone logged an activity.",
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-192.png",
-      tag: data.tag || "september-mission",
+      tag: data.tag || "mission-32",
       renotify: true,
       data: { url: data.url || "/dashboard" },
     }),

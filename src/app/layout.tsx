@@ -9,12 +9,12 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "September Mission",
+  title: "Mission 32",
   description: "15 rides, 7 pit explorations, 10 sport days — tracked together.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "September Mission",
+    title: "Mission 32",
     statusBarStyle: "default",
   },
   icons: {

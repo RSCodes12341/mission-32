@@ -15,7 +15,7 @@ export async function SiteHeader() {
           className="flex items-center gap-2 font-semibold tracking-tight"
         >
           <span aria-hidden className="h-2.5 w-2.5 rounded-full bg-accent" />
-          September Mission
+          Mission 32
         </Link>
 
         {user ? (

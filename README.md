@@ -1,7 +1,7 @@
-# September Mission
+# Mission 32
 
-A shared tracker for a friend group working through one mission together — 15 rides
-(7 of them pit explorations) and 10 sport days. Everyone joins with an invite code, logs
+A shared tracker for a friend group working through one mission together — 32 sessions:
+15 rides (7 of them pit explorations) and 10 sport days. Everyone joins with an invite code, logs
 activities with before/after photos, and watches the same tally fill up.
 
 It's a PWA, so it installs to the home screen on iOS and Android with no App Store and
@@ -84,13 +84,13 @@ http://localhost:3000. Browse the data with `npm run db:studio`.
 ### 1. Push to GitHub
 
 ```bash
-git add -A && git commit -m "September Mission" && git branch -M main
+git add -A && git commit -m "Mission 32" && git branch -M main
 ```
 
 Create an empty repo on GitHub, then:
 
 ```bash
-git remote add origin git@github.com:YOUR_USERNAME/september-mission.git && git push -u origin main
+git remote add origin https://github.com/RSCodes12341/mission-32.git && git push -u origin main
 ```
 
 ### 2. Create the Vercel project

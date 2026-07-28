@@ -48,7 +48,7 @@ export function NewMissionForm() {
       <FormError>{errors.form}</FormError>
 
       <Field label="Mission name" error={errors.name}>
-        <Input name="name" defaultValue="The September mission" required maxLength={80} />
+        <Input name="name" defaultValue="Mission 32" required maxLength={80} />
       </Field>
 
       <div className="grid grid-cols-3 gap-3">

@@ -5,7 +5,7 @@ import { InviteCode } from "@/components/invite-code";
 import { listMissionsForUser } from "@/lib/mission";
 import { requireUser } from "@/lib/session";
 
-export const metadata = { title: "Dashboard · September Mission" };
+export const metadata = { title: "Dashboard · Mission 32" };
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
