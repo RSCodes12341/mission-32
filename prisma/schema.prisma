@@ -1,0 +1,92 @@
+// September Mission — data model
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ActivityKind {
+  RIDE
+  PIT
+  SPORT
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  memberships       Membership[]
+  activities        Activity[]
+  createdMissions   Mission[]          @relation("MissionCreatedBy")
+  pushSubscriptions PushSubscription[]
+}
+
+model Mission {
+  id          String   @id @default(cuid())
+  name        String
+  inviteCode  String   @unique
+  rideTarget  Int      @default(15)
+  pitTarget   Int      @default(7)
+  sportTarget Int      @default(10)
+  createdById String
+  createdAt   DateTime @default(now())
+
+  createdBy   User         @relation("MissionCreatedBy", fields: [createdById], references: [id])
+  memberships Membership[]
+  activities  Activity[]
+
+  @@index([createdById])
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  missionId String
+  joinedAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId])
+  @@index([missionId])
+}
+
+model Activity {
+  id             String       @id @default(cuid())
+  missionId      String
+  userId         String
+  kind           ActivityKind
+  note           String?
+  beforePhotoUrl String?
+  afterPhotoUrl  String?
+  createdAt      DateTime     @default(now())
+
+  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([missionId, createdAt])
+  @@index([userId])
+}
+
+/// One row per browser/device a user has granted notification permission on.
+/// Rows are deleted when the push service reports the endpoint as gone (404/410).
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

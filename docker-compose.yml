@@ -1,0 +1,27 @@
+# Optional: only needed if you'd rather run Postgres in Docker than via Homebrew.
+#   docker compose up -d
+# Then set in .env:
+#   DATABASE_URL="postgresql://postgres:postgres@localhost:5433/september_mission?schema=public"
+# Port 5433 is used so this can coexist with a Homebrew Postgres on 5432.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: september-mission-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: september_mission
+    ports:
+      - "5433:5432"
+    volumes:
+      - september-mission-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d september_mission"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  september-mission-pgdata:
