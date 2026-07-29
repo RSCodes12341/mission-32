@@ -135,14 +135,29 @@ Push to `main`. The build applies migrations automatically.
 
 ## Inviting people
 
-1. Sign in and hit **New mission**. You get a 6-character invite code (no `0`/`O`/`1`/`I`,
-   so it's unambiguous read aloud).
-2. **Copy invite link** puts `https://your-app.vercel.app/mission/join?code=XXXXXX` on your
-   clipboard. Anyone opening it signs in (or registers) and joins in one tap.
-3. Or they can go to **Join with a code** and type the code by hand.
+Hit **Invite** on any mission. It composes a message from that mission's real numbers —
+goal names, targets, how many are already in, how much you've logged — and ends with the
+code and a one-tap join link:
 
-Someone who isn't a member of a mission can't load its page — they get bounced to the join
-screen rather than shown the data.
+```
+ann has 5 logged already. You'd be starting from zero — so did everyone.
+
+Winter block — 10 climbs, 4 hard climbs and 6 sauna.
+You get your own copy of all of it — nobody finishes it for you. Do one together
+and it counts for both.
+
+Join code: P3RYUG
+https://mission-32.vercel.app/mission/join?code=P3RYUG
+```
+
+**Different wording** cycles six openings; which one you start on is random, so two people
+inviting the same day don't send identical texts. On a phone, **Share** opens the native
+share sheet (Messages, WhatsApp, wherever). Elsewhere you get *Copy message*, *Copy link*
+and *Code*.
+
+Invite codes skip `0`/`O`/`1`/`I` so they survive being read aloud. Someone who isn't a
+member can't load a mission's page — they get bounced to the join screen rather than shown
+the data.
 
 ---
 

@@ -8,17 +8,26 @@ import { requireUser } from "@/lib/session";
 export const metadata = { title: "Dashboard · Mission 32" };
 export const dynamic = "force-dynamic";
 
-function MissionCard({ mission }: { mission: MissionSummary }) {
+function MissionCard({
+  mission,
+  inviterName,
+}: {
+  mission: MissionSummary;
+  inviterName: string;
+}) {
   const left = mission.myTotal - mission.myDone;
 
   return (
-    <Card className="overflow-hidden transition-colors hover:border-line-strong">
+    // No overflow-hidden on this Card: the invite popover is absolutely
+    // positioned in the footer, and a clipping ancestor would swallow it. The
+    // inner link rounds its own top corners instead.
+    <Card className="transition-colors hover:border-line-strong">
       {/* The whole block is the target, not just the title. Tapping a card that
           looks tappable has to work — this is the bug that made the app unusable
           on a phone. */}
       <Link
         href={`/mission/${mission.id}`}
-        className="block px-4 pt-4 pb-3 transition-colors hover:bg-sunken/60"
+        className="block rounded-t-xl px-4 pb-3 pt-4 transition-colors hover:bg-sunken/60"
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -64,7 +73,15 @@ function MissionCard({ mission }: { mission: MissionSummary }) {
       </Link>
 
       <div className="flex items-center justify-between gap-2 border-t border-line px-3 py-2">
-        <InviteCode code={mission.inviteCode} />
+        <InviteCode
+          compact
+          code={mission.inviteCode}
+          missionName={mission.name}
+          goals={mission.goals}
+          memberCount={mission._count.memberships}
+          inviterName={inviterName}
+          inviterDone={mission.myDone}
+        />
         <ButtonLink href={`/mission/${mission.id}#log`} className="px-3 text-xs">
           Log
         </ButtonLink>
@@ -105,7 +122,7 @@ export default async function DashboardPage() {
         <ul className="space-y-3">
           {missions.map((mission) => (
             <li key={mission.id}>
-              <MissionCard mission={mission} />
+              <MissionCard mission={mission} inviterName={user.name} />
             </li>
           ))}
         </ul>

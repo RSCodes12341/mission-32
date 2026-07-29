@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useDismissable } from "@/lib/use-dismissable";
 import {
   ACCENTS,
   ACCENT_KEY,
@@ -64,19 +65,7 @@ export function ThemeMenu() {
     return () => mq.removeEventListener("change", onChange);
   }, [mode]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: PointerEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  useDismissable(wrapRef, open, useCallback(() => setOpen(false), []));
 
   function chooseMode(next: ThemeMode) {
     setMode(next);

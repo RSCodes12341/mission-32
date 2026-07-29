@@ -48,7 +48,14 @@ export default async function MissionPage({ params }: { params: Promise<{ id: st
             </p>
           </div>
           <div className="flex w-full flex-col items-start gap-2 sm:w-auto sm:items-end">
-            <InviteCode code={mission.inviteCode} />
+            <InviteCode
+              code={mission.inviteCode}
+              missionName={mission.name}
+              goals={mission.goals}
+              memberCount={mission.members.length}
+              inviterName={user.name}
+              inviterDone={mission.myDone}
+            />
             <NotificationsButton />
           </div>
         </div>
