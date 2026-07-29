@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 
 import { createMissionWithOwner } from "@/lib/mission";
 import { getApiUser } from "@/lib/session";
-import { createMissionSchema, fieldErrors } from "@/lib/validation";
+import {
+  createMissionSchema,
+  fieldErrors,
+  nextGoalHue,
+  validateGoalGraph,
+} from "@/lib/validation";
 
 export async function POST(req: Request) {
   const user = await getApiUser();
@@ -14,14 +19,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ errors: fieldErrors(parsed.error) }, { status: 400 });
   }
 
-  if (parsed.data.pitTarget > parsed.data.rideTarget) {
-    return NextResponse.json(
-      { errors: { pitTarget: "Pit explorations are a subset of rides, so this can't exceed the ride target" } },
-      { status: 400 },
-    );
+  const graphError = validateGoalGraph(parsed.data.goals);
+  if (graphError) {
+    return NextResponse.json({ errors: { goals: graphError } }, { status: 400 });
   }
 
-  const mission = await createMissionWithOwner(user.id, parsed.data);
+  // Fill in any hues the client didn't pick, keeping them distinct.
+  const used: number[] = [];
+  const goals = parsed.data.goals.map((g) => {
+    const hue = g.hue ?? nextGoalHue(used);
+    used.push(hue);
+    return { ...g, hue };
+  });
+
+  const mission = await createMissionWithOwner(user.id, parsed.data.name, goals);
 
   return NextResponse.json(
     { mission: { id: mission.id, name: mission.name, inviteCode: mission.inviteCode } },

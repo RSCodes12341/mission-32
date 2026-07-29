@@ -3,10 +3,10 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { ButtonLink, Card } from "@/components/ui";
 
-const GOALS = [
-  { label: "Rides", value: 15, hint: "including the pit explorations" },
-  { label: "Pit explorations", value: 7, hint: "a subset of the rides" },
-  { label: "Sport days", value: 10, hint: "anything that counts as sport" },
+const POINTS = [
+  { title: "Count anything", body: "Rides, climbs, sauna, whatever you agreed on. You set the list and the targets." },
+  { title: "Everyone runs their own", body: "Each person works through their own copy. One member being ahead doesn't finish it for anyone else." },
+  { title: "Did it together? Log it once", body: "Tag whoever was with you and it counts for all of you." },
 ];
 
 export default async function Home() {
@@ -20,18 +20,17 @@ export default async function Home() {
           One mission, tracked together.
         </h1>
         <p className="max-w-prose text-muted">
-          Everyone joins with an invite code, logs rides and sport days with a before and
-          after photo, and watches the same tally fill up. Add it to your home screen and
-          it behaves like an app.
+          Everyone joins with an invite code, logs sessions with a before and after photo,
+          and watches their own tally fill up next to everyone else&rsquo;s. Add it to your
+          home screen and it behaves like an app.
         </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        {GOALS.map((goal) => (
-          <Card key={goal.label} className="px-4 py-4">
-            <p className="tabular text-2xl font-semibold">{goal.value}</p>
-            <p className="text-sm font-medium">{goal.label}</p>
-            <p className="mt-0.5 text-xs text-subtle">{goal.hint}</p>
+        {POINTS.map((point) => (
+          <Card key={point.title} className="px-4 py-4">
+            <p className="text-sm font-semibold">{point.title}</p>
+            <p className="mt-1 text-sm text-muted">{point.body}</p>
           </Card>
         ))}
       </div>

@@ -172,14 +172,36 @@ service reports as expired are deleted automatically.
 
 ---
 
-## How the tally works
+## How missions work
 
-A pit exploration is a ride too, so it counts toward both the ride and pit totals. Sport
-days are separate. With the defaults, 15 rides / 7 pits / 10 sport days, the mission is
-complete at 15 rides of which at least 7 were pit explorations, plus 10 sport days.
+**You define what gets counted.** A mission holds any number of goals — "Rides", "Climbs",
+"Sauna", whatever you agreed on — each with its own target. Add, rename, retarget and
+remove them from *Change what this mission counts* (mission creator only, since removing a
+goal deletes the sessions logged against it).
 
-You can delete your own entries — they come off the tally immediately. You can't delete
-anyone else's.
+**Everyone completes their own copy.** Targets are per person. If the mission is 15 rides,
+every member owes 15 rides — one person racing ahead doesn't finish it for anybody else.
+The member list is a standing, not a shared pot.
+
+**Sessions done together are logged once.** Tag whoever was with you and the entry counts
+toward every one of you. It shows in the feed as "ann, bob and cal" with a *together* badge.
+
+**Goals can roll up.** A goal can also count toward another one, which is how "7 pit
+explorations" advances "15 rides" without being a separate outing. Roll-ups are one level
+deep, and a rolled-up goal can't have a higher target than its parent.
+
+You can delete entries you logged — they come off the tally for everyone who was on them.
+You can't delete anyone else's.
+
+## Appearance
+
+Light, dark, or follow the OS, plus 14 accent colours, set per device from the header. The
+choice is applied before first paint, so there's no flash of the wrong theme.
+
+Accents are stored as an OKLCH **hue angle only** — lightness and chroma are fixed in
+`globals.css`. That means contrast is identical whichever colour someone picks, instead of
+hand-tuning 14 palettes and hoping. Every combination is verified at WCAG AA (4.5:1) in
+both themes against all three surface levels.
 
 ---
 

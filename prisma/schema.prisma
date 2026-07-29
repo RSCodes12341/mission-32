@@ -1,4 +1,4 @@
-// September Mission — data model
+// Mission 32 — data model
 // Docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -15,12 +15,6 @@ datasource db {
   directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
-enum ActivityKind {
-  RIDE
-  PIT
-  SPORT
-}
-
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -30,7 +24,8 @@ model User {
 
   memberships       Membership[]
   activities        Activity[]
-  createdMissions   Mission[]          @relation("MissionCreatedBy")
+  participations    ActivityParticipant[]
+  createdMissions   Mission[]             @relation("MissionCreatedBy")
   pushSubscriptions PushSubscription[]
 }
 
@@ -38,17 +33,41 @@ model Mission {
   id          String   @id @default(cuid())
   name        String
   inviteCode  String   @unique
-  rideTarget  Int      @default(15)
-  pitTarget   Int      @default(7)
-  sportTarget Int      @default(10)
   createdById String
   createdAt   DateTime @default(now())
 
-  createdBy   User         @relation("MissionCreatedBy", fields: [createdById], references: [id])
+  createdBy   User          @relation("MissionCreatedBy", fields: [createdById], references: [id])
+  goals       MissionGoal[]
   memberships Membership[]
   activities  Activity[]
 
   @@index([createdById])
+}
+
+/// A thing the group is counting, defined per mission — "Rides", "Sauna", "Climbs",
+/// whatever they decide. Targets are per person: everyone works through their own copy.
+model MissionGoal {
+  id        String @id @default(cuid())
+  missionId String
+  name      String
+  target    Int
+  /// OKLCH hue for this goal's badge. Fixed per goal so it stays stable while the
+  /// user's chosen accent changes around it.
+  hue       Int    @default(255)
+  position  Int    @default(0)
+
+  /// Optional roll-up: logging this also advances another goal. Lets "7 pit
+  /// explorations" count toward "15 rides" without being a separate session.
+  countsTowardId String?
+  countsToward   MissionGoal?  @relation("GoalRollup", fields: [countsTowardId], references: [id], onDelete: SetNull)
+  rollsUpFrom    MissionGoal[] @relation("GoalRollup")
+
+  mission    Mission    @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  activities Activity[]
+
+  @@unique([missionId, name])
+  @@index([missionId, position])
+  @@index([countsTowardId])
 }
 
 model Membership {
@@ -64,20 +83,41 @@ model Membership {
   @@index([missionId])
 }
 
+/// One logged session. Everyone works through their own copy of the targets, so
+/// what counts toward a person's tally is their ActivityParticipant row — not
+/// authorship. A session done together is one Activity with several participants,
+/// and it advances every one of them.
 model Activity {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   missionId      String
+  goalId         String
+  /// Who logged it. Always also present in `participants`.
   userId         String
-  kind           ActivityKind
   note           String?
   beforePhotoUrl String?
   afterPhotoUrl  String?
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime @default(now())
 
-  mission Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission      Mission               @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  goal         MissionGoal           @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  participants ActivityParticipant[]
 
   @@index([missionId, createdAt])
+  @@index([goalId])
+  @@index([userId])
+}
+
+/// Who this session counted for. Rows are what tallies are computed from.
+model ActivityParticipant {
+  id         String @id @default(cuid())
+  activityId String
+  userId     String
+
+  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([activityId, userId])
   @@index([userId])
 }
 

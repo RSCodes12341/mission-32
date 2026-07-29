@@ -1,109 +1,227 @@
 @import "tailwindcss";
 
-/* Flat, hairline-bordered, no gradients. One accent for progress, one hue per
-   activity kind. Light and dark are the same design with swapped values. */
+/* ---------------------------------------------------------------------------
+   Theme
+   Light and dark are the same design with swapped values. The accent is derived
+   from a single hue variable (--accent-hue) that the user picks, with lightness
+   and chroma held fixed — so contrast stays constant no matter which colour they
+   choose, instead of hand-tuning twelve palettes and hoping.
+   --------------------------------------------------------------------------- */
+
 :root {
-  --bg: #fbfbfa;
-  --surface: #ffffff;
-  --surface-sunken: #f4f4f2;
-  --fg: #17171a;
-  --fg-muted: #6b6b73;
-  --fg-subtle: #94949e;
-  --line: #e3e3e0;
-  --line-strong: #cfcfca;
+  --accent-hue: 150; /* green; overwritten before paint by the theme script */
+  --accent-chroma: 0.16;
+  /* Lightness the accent swatches preview at, per theme. */
+  --swatch-l: 0.48;
 
-  --accent: #15803d;
-  --accent-fg: #ffffff;
-  --accent-soft: #dcfce7;
+  --bg: oklch(0.985 0.002 250);
+  --surface: oklch(1 0 0);
+  --sunken: oklch(0.965 0.003 250);
+  --fg: oklch(0.19 0.012 260);
+  --muted: oklch(0.49 0.012 260);
+  /* 0.53, not the 0.62 that "looks right" — subtle carries placeholders and
+     timestamps, and anything lighter fails 4.5:1 against the sunken surface. */
+  --subtle: oklch(0.53 0.011 260);
+  --line: oklch(0.915 0.004 260);
+  --line-strong: oklch(0.84 0.006 260);
 
-  --ride: #1d4ed8;
-  --ride-soft: #dbeafe;
-  --pit: #b45309;
-  --pit-soft: #fef3c7;
-  --sport: #6d28d9;
-  --sport-soft: #ede9fe;
+  --accent: oklch(0.48 var(--accent-chroma) var(--accent-hue));
+  --accent-hover: oklch(0.42 var(--accent-chroma) var(--accent-hue));
+  --accent-fg: oklch(0.99 0.005 var(--accent-hue));
+  --accent-soft: oklch(0.95 calc(var(--accent-chroma) * 0.28) var(--accent-hue));
+  --accent-ink: oklch(0.42 calc(var(--accent-chroma) * 0.88) var(--accent-hue));
 
-  --danger: #b91c1c;
-  --danger-soft: #fee2e2;
+  /* Per-goal colour. Each goal stores its own hue, and these hold lightness and
+     chroma steady across all of them — so goals stay distinguishable from each
+     other and from whichever accent the user picked. */
+  --goal-l: 0.5;
+  --goal-c: 0.14;
+  --goal-soft-l: 0.95;
+  --goal-soft-c: 0.045;
+
+  --danger: oklch(0.52 0.19 27);
+  --danger-soft: oklch(0.95 0.03 27);
+
+  --shadow-pop: 0 8px 28px -12px oklch(0.2 0.02 260 / 0.28);
+
+  /* Semantic stacking order — never arbitrary numbers. */
+  --z-sticky: 20;
+  --z-dropdown: 40;
+  --z-overlay: 60;
+  --z-modal: 70;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 130ms;
+  --dur: 190ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0c0c0e;
-    --surface: #141417;
-    --surface-sunken: #1c1c20;
-    --fg: #f2f2f4;
-    --fg-muted: #a1a1aa;
-    --fg-subtle: #71717a;
-    --line: #27272c;
-    --line-strong: #3a3a41;
+:root[data-theme="dark"] {
+  --bg: oklch(0.165 0.006 265);
+  --surface: oklch(0.205 0.007 265);
+  --sunken: oklch(0.25 0.008 265);
+  --fg: oklch(0.965 0.003 265);
+  --muted: oklch(0.735 0.011 265);
+  /* 0.64 clears 4.5:1 against the sunken surface; 0.61 did not. */
+  --subtle: oklch(0.64 0.012 265);
+  --line: oklch(0.295 0.008 265);
+  --line-strong: oklch(0.39 0.01 265);
 
-    --accent: #4ade80;
-    --accent-fg: #062e14;
-    --accent-soft: #14331f;
+  --swatch-l: 0.8;
 
-    --ride: #93b4fd;
-    --ride-soft: #17233f;
-    --pit: #fcd34d;
-    --pit-soft: #35270d;
-    --sport: #c4b5fd;
-    --sport-soft: #241a3d;
+  --accent: oklch(0.8 var(--accent-chroma) var(--accent-hue));
+  --accent-hover: oklch(0.86 calc(var(--accent-chroma) * 0.9) var(--accent-hue));
+  --accent-fg: oklch(0.2 0.04 var(--accent-hue));
+  --accent-soft: oklch(0.3 calc(var(--accent-chroma) * 0.35) var(--accent-hue));
+  --accent-ink: oklch(0.85 calc(var(--accent-chroma) * 0.82) var(--accent-hue));
 
-    --danger: #fca5a5;
-    --danger-soft: #3a1616;
-  }
+  /* Per-goal colour, driven by each goal's own stored hue. */
+  --goal-l: 0.8;
+  --goal-c: 0.12;
+  --goal-soft-l: 0.3;
+  --goal-soft-c: 0.05;
+
+  --danger: oklch(0.75 0.15 27);
+  --danger-soft: oklch(0.3 0.07 27);
+
+  --shadow-pop: 0 8px 28px -12px oklch(0 0 0 / 0.65);
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
-  --color-sunken: var(--surface-sunken);
+  --color-sunken: var(--sunken);
   --color-fg: var(--fg);
-  --color-muted: var(--fg-muted);
-  --color-subtle: var(--fg-subtle);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
 
   --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
-
-  --color-ride: var(--ride);
-  --color-ride-soft: var(--ride-soft);
-  --color-pit: var(--pit);
-  --color-pit-soft: var(--pit-soft);
-  --color-sport: var(--sport);
-  --color-sport-soft: var(--sport-soft);
+  --color-accent-ink: var(--accent-ink);
 
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Fixed rem scale, not fluid — product UI is read at consistent DPI. */
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.3125rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.5rem;
 }
 
 html {
   background: var(--bg);
-  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--bg);
   color: var(--fg);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   /* Respect the notch and home indicator once installed to the home screen. */
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-/* Keyboard focus stays obvious; mouse clicks stay quiet. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Keyboard focus stays obvious; pointer clicks stay quiet. */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
-/* Tabular figures so counters don't jitter as they tick up. */
+/* Stops iOS Safari zooming the page when a <16px input gains focus. */
+input,
+textarea,
+select {
+  font-size: max(16px, 1rem);
+}
+
+/* Counters shouldn't jitter as they tick up. */
 .tabular {
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Everything below only ever conveys state — never decoration. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes m32-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+@keyframes m32-shimmer {
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.pop-in {
+  animation: m32-pop-in var(--dur) var(--ease-out);
+}
+
+/* Skeletons, not spinners, for content that is loading. */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--sunken) 0%,
+    var(--line) 50%,
+    var(--sunken) 100%
+  );
+  background-size: 200% 100%;
+  animation: m32-shimmer 1.4s linear infinite;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    background: var(--sunken);
+  }
+}
+
+/* Goal colour. Set --goal-hue inline from the goal's stored hue; lightness and
+   chroma come from the theme so every goal reads at the same strength. */
+.goal-ink {
+  color: oklch(var(--goal-l) var(--goal-c) var(--goal-hue, 255));
+}
+.goal-bg {
+  background: oklch(var(--goal-l) var(--goal-c) var(--goal-hue, 255));
+}
+.goal-soft {
+  background: oklch(var(--goal-soft-l) var(--goal-soft-c) var(--goal-hue, 255));
+  color: oklch(var(--goal-l) var(--goal-c) var(--goal-hue, 255));
 }

@@ -2,20 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { ActivityKind } from "@prisma/client";
 
-import { KindBadge } from "@/components/activity-kind";
-import { Card, EmptyState } from "@/components/ui";
+import { Card, EmptyState, GoalBadge, cx } from "@/components/ui";
 import { PhotoViewer, type ViewerPhoto } from "@/components/photo-viewer";
 
 export type FeedItem = {
   id: string;
-  kind: ActivityKind;
   note: string | null;
   beforePhotoUrl: string | null;
   afterPhotoUrl: string | null;
   createdAt: string | Date;
+  userId: string;
+  goal: { id: string; name: string; hue: number };
   user: { id: string; name: string };
+  participants: { user: { id: string; name: string } }[];
 };
 
 function dayKey(date: Date) {
@@ -38,15 +38,14 @@ function dayLabel(date: Date) {
   });
 }
 
-function Thumb({
-  url,
-  label,
-  onOpen,
-}: {
-  url: string;
-  label: string;
-  onOpen: () => void;
-}) {
+/** "Ronith", "Ronith and Priya", "Ronith, Priya and Sam" */
+function nameList(names: string[]) {
+  if (names.length <= 1) return names[0] ?? "";
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
+function Thumb({ url, label, onOpen }: { url: string; label: string; onOpen: () => void }) {
   return (
     <button
       type="button"
@@ -60,7 +59,7 @@ function Thumb({
         loading="lazy"
         className="h-24 w-full object-cover transition-opacity group-hover:opacity-90"
       />
-      <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[11px] font-medium text-white">
+      <span className="absolute bottom-1 left-1 rounded bg-black/65 px-1.5 py-0.5 text-2xs font-medium text-white">
         {label}
       </span>
     </button>
@@ -92,7 +91,8 @@ export function ActivityFeed({
   }, [activities]);
 
   async function remove(id: string) {
-    if (!window.confirm("Delete this entry? It'll come off the tally.")) return;
+    if (!window.confirm("Delete this entry? It comes off everyone's tally who was on it."))
+      return;
     setDeleting(id);
     try {
       const res = await fetch(`/api/activities/${id}`, { method: "DELETE" });
@@ -105,20 +105,17 @@ export function ActivityFeed({
   if (activities.length === 0) {
     return (
       <EmptyState title="Nothing logged yet">
-        The first entry sets the tone. Use the form above.
+        The first entry sets the tone. Use the form above — it takes about ten seconds.
       </EmptyState>
     );
   }
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-5">
         {groups.map((group) => (
           <section key={group.key} className="space-y-2">
-            <h3
-              suppressHydrationWarning
-              className="text-xs font-semibold uppercase tracking-wide text-subtle"
-            >
+            <h3 suppressHydrationWarning className="text-xs font-medium text-subtle">
               {group.label}
             </h3>
 
@@ -128,24 +125,36 @@ export function ActivityFeed({
                   hour: "numeric",
                   minute: "2-digit",
                 });
-                const caption = `${item.user.name}, ${time}`;
+                const names = item.participants.map((p) => p.user.name);
+                const shared = names.length > 1;
+                const mine = item.userId === currentUserId;
 
                 return (
                   <li key={item.id}>
                     <Card className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="font-medium">{item.user.name}</span>
-                        <KindBadge kind={item.kind} />
+                        <span className="font-medium">
+                          {shared ? nameList(names) : item.user.name}
+                        </span>
+                        <GoalBadge name={item.goal.name} hue={item.goal.hue} />
                         <span suppressHydrationWarning className="text-xs text-subtle">
                           {time}
                         </span>
+                        {shared ? (
+                          <span className="rounded-full bg-sunken px-2 py-0.5 text-2xs font-medium text-muted">
+                            together
+                          </span>
+                        ) : null}
 
-                        {item.user.id === currentUserId ? (
+                        {mine ? (
                           <button
                             type="button"
                             onClick={() => remove(item.id)}
                             disabled={deleting === item.id}
-                            className="ml-auto rounded-md px-2 py-1 text-xs text-subtle hover:bg-danger-soft hover:text-danger disabled:opacity-50"
+                            className={cx(
+                              "ml-auto min-h-9 rounded-md px-2 text-xs text-subtle transition-colors",
+                              "hover:bg-danger-soft hover:text-danger disabled:opacity-50",
+                            )}
                           >
                             {deleting === item.id ? "Deleting…" : "Delete"}
                           </button>
@@ -153,7 +162,7 @@ export function ActivityFeed({
                       </div>
 
                       {item.note ? (
-                        <p className="mt-1.5 text-sm whitespace-pre-wrap">{item.note}</p>
+                        <p className="mt-1.5 whitespace-pre-wrap text-sm">{item.note}</p>
                       ) : null}
 
                       {item.beforePhotoUrl || item.afterPhotoUrl ? (
@@ -166,7 +175,7 @@ export function ActivityFeed({
                                 setViewing({
                                   url: item.beforePhotoUrl!,
                                   label: "Before",
-                                  caption,
+                                  caption: `${nameList(names)}, ${time}`,
                                 })
                               }
                             />
@@ -181,7 +190,7 @@ export function ActivityFeed({
                                 setViewing({
                                   url: item.afterPhotoUrl!,
                                   label: "After",
-                                  caption,
+                                  caption: `${nameList(names)}, ${time}`,
                                 })
                               }
                             />

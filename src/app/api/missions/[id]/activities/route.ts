@@ -5,18 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { sendPushToUsers } from "@/lib/push";
 import { getApiUser, isMember } from "@/lib/session";
 import { uploadPhoto } from "@/lib/storage";
-import {
-  activityKindSchema,
-  NOTE_MAX,
-  PHOTO_MAX_BYTES,
-  PHOTO_MIME,
-} from "@/lib/validation";
+import { NOTE_MAX, PHOTO_MAX_BYTES, PHOTO_MIME } from "@/lib/validation";
 
 export const runtime = "nodejs";
 // Photos are uploaded before the row is written, so allow room for two of them.
 export const maxDuration = 60;
-
-const KIND_LABEL = { RIDE: "ride", PIT: "pit exploration", SPORT: "sport day" } as const;
 
 function badRequest(field: string, message: string) {
   return NextResponse.json({ errors: { [field]: message } }, { status: 400 });
@@ -33,8 +26,7 @@ function validatePhoto(file: File, field: string) {
   if (file.size > PHOTO_MAX_BYTES) {
     return badRequest(field, "That photo is over 8MB — pick a smaller one.");
   }
-  const type = file.type.toLowerCase();
-  if (!PHOTO_MIME.includes(type as (typeof PHOTO_MIME)[number])) {
+  if (!PHOTO_MIME.includes(file.type.toLowerCase() as (typeof PHOTO_MIME)[number])) {
     return badRequest(field, "Only jpg, png, webp or heic photos.");
   }
   return null;
@@ -52,12 +44,35 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const form = await req.formData().catch(() => null);
   if (!form) return badRequest("form", "Could not read the upload.");
 
-  const kind = activityKindSchema.safeParse(form.get("kind"));
-  if (!kind.success) return badRequest("kind", "Pick ride, pit exploration or sport day.");
+  // The goal must belong to this mission — otherwise a member could log against
+  // some other group's goal by id.
+  const goalId = String(form.get("goalId") ?? "");
+  const goal = goalId
+    ? await prisma.missionGoal.findFirst({
+        where: { id: goalId, missionId },
+        select: { id: true, name: true },
+      })
+    : null;
+  if (!goal) return badRequest("goalId", "Pick what you did.");
 
   const rawNote = String(form.get("note") ?? "").trim();
   if (rawNote.length > NOTE_MAX) {
     return badRequest("note", `Keep the note under ${NOTE_MAX} characters.`);
+  }
+
+  // Who this counted for. Always includes the logger; extra names must be members
+  // of this mission, so nobody can push entries onto a stranger.
+  const requested = form.getAll("participantIds").map(String).filter(Boolean);
+  const participantIds = [...new Set([user.id, ...requested])];
+
+  if (participantIds.length > 1) {
+    const members = await prisma.membership.findMany({
+      where: { missionId, userId: { in: participantIds } },
+      select: { userId: true },
+    });
+    if (members.length !== participantIds.length) {
+      return badRequest("participantIds", "Everyone on a shared session has to be a member.");
+    }
   }
 
   const before = filePart(form, "beforePhoto");
@@ -90,30 +105,44 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const activity = await prisma.activity.create({
     data: {
       missionId,
+      goalId: goal.id,
       userId: user.id,
-      kind: kind.data,
       note: rawNote || null,
       beforePhotoUrl,
       afterPhotoUrl,
+      participants: { create: participantIds.map((userId) => ({ userId })) },
     },
-    select: { id: true, kind: true, createdAt: true },
+    select: { id: true, createdAt: true },
   });
 
-  // Tell everyone else in the mission. Failures here are logged, not surfaced —
-  // the activity is already saved and that is what the user asked for.
+  // Tell the others. Failures are logged, not surfaced — the activity is already
+  // saved and that is what the user asked for.
   const others = await prisma.membership.findMany({
     where: { missionId, userId: { not: user.id } },
     select: { userId: true },
   });
-  await sendPushToUsers(
-    others.map((m) => m.userId),
-    {
+
+  const label = goal.name.toLowerCase();
+  const shared = participantIds.filter((id) => id !== user.id);
+  const sharedSet = new Set(shared);
+
+  await Promise.all([
+    sendPushToUsers(shared, {
       title: "Mission 32",
-      body: `${user.name} logged a ${KIND_LABEL[kind.data]}`,
+      body: `${user.name} logged ${label} for both of you`,
       url: `/mission/${missionId}`,
       tag: `mission-${missionId}`,
-    },
-  ).catch((err) => console.error("Push fan-out failed", err));
+    }),
+    sendPushToUsers(
+      others.map((m) => m.userId).filter((id) => !sharedSet.has(id)),
+      {
+        title: "Mission 32",
+        body: `${user.name} logged ${label}`,
+        url: `/mission/${missionId}`,
+        tag: `mission-${missionId}`,
+      },
+    ),
+  ]).catch((err) => console.error("Push fan-out failed", err));
 
   revalidatePath(`/mission/${missionId}`);
   revalidatePath("/dashboard");
